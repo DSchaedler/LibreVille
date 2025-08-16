@@ -31,6 +31,7 @@ def logic args
   # This is where you would put any game logic that needs to run every frame.
 
   args.state.rotation ||= -45   # (Integer Angle) Isometric View Angle
+  args.state.money    ||= 10000
 
   # Create an array of arrays, for a grid.
   grid_size = 10
@@ -135,6 +136,11 @@ def user_interface args
   args.outputs.sprites << args.state.zoom_in_button_rect.merge(path: icon_zoom_in)
   args.outputs.sprites << args.state.zoom_out_button_rect.merge(path: icon_zoom_out)
   args.outputs.sprites << args.state.grid_menu_button_rect.merge(path: icon_grid_menu)
+
+  args.state.money_label_rect       ||= args.layout.rect(row: 0, col: 1, w: 1, h: 1)
+  args.state.money_label_text       = "\$#{args.state.money}"
+
+  args.outputs.labels << args.state.money_label_rect.merge(text: args.state.money_label_text, r: 0, g: 255, b: 0, font: "fonts/kenney/kenney_bold_extra.ttf", vertical_alignment_enum: 0, size_px: args.state.money_label_rect.h * 0.8)
 
   if args.inputs.mouse.up
     if args.state.menu_button_rect.intersect_rect? args.inputs.mouse
