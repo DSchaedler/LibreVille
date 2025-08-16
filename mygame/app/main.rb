@@ -124,8 +124,6 @@ def user_interface args
   icon_zoom_out         = "sprites/kenney/game_icons/png/white/2x/zoom_out.png"
   icon_menu             = "sprites/kenney/game_icons/png/white/2x/bars_horizontal.png"
   icon_grid_menu        = "sprites/kenney/game_icons/png/white/2x/menu_grid.png"
-  icon_rotate_isometric = "sprites/kenney/game_icons_expansion/png/white/2x/device_tilt_right.png"
-  icon_rotate_cartesian = "sprites/kenney/game_icons_expansion/png/white/2x/device_tilt_left.png"
 
   args.state.menu_button_rect       ||= args.layout.rect(row: 0,                                col: args.layout.col_max_index, w: 1, h: 1)
   args.state.zoom_in_button_rect    ||= args.layout.rect(row: (args.layout.row_max_index - 1),  col: args.layout.col_max_index, w: 1, h: 1)
@@ -137,12 +135,6 @@ def user_interface args
   args.outputs.sprites << args.state.zoom_in_button_rect.merge(path: icon_zoom_in)
   args.outputs.sprites << args.state.zoom_out_button_rect.merge(path: icon_zoom_out)
   args.outputs.sprites << args.state.grid_menu_button_rect.merge(path: icon_grid_menu)
-
-  if args.state.rotation == -45
-    args.outputs.sprites << args.state.rotate_button_rect.merge(path: icon_rotate_cartesian)
-  else
-    args.outputs.sprites << args.state.rotate_button_rect.merge(path: icon_rotate_isometric)
-  end
 
   if args.inputs.mouse.up
     if args.state.menu_button_rect.intersect_rect? args.inputs.mouse
@@ -160,15 +152,6 @@ def user_interface args
 
     if args.state.grid_menu_button_rect.intersect_rect? args.inputs.mouse
       # TODO: Implement grid menu for selecting view.
-    end
-
-    if args.state.rotate_button_rect.intersect_rect? args.inputs.mouse
-      puts "clicked rotate"
-      if args.state.rotation == -45
-        args.state.rotation = 0
-      else
-        args.state.rotation = -45
-      end
     end
   end
 
@@ -193,7 +176,26 @@ def debug_interface args
     args.outputs.primitives << args.layout.debug_primitives
     fps_rect = args.layout.rect(row: 0, col: 0, w: 1, h: 1)
     args.outputs.labels << fps_rect.merge(text: "FPS: #{args.gtk.current_framerate.round}", r: 255, g: 255, b: 255)
+
+      icon_rotate_isometric = "sprites/kenney/game_icons_expansion/png/white/2x/device_tilt_right.png"
+      icon_rotate_cartesian = "sprites/kenney/game_icons_expansion/png/white/2x/device_tilt_left.png"
+
+      if args.state.rotation == -45
+        args.outputs.sprites << args.state.rotate_button_rect.merge(path: icon_rotate_cartesian)
+      else
+        args.outputs.sprites << args.state.rotate_button_rect.merge(path: icon_rotate_isometric)
+      end
+
+      if args.inputs.mouse.up and args.state.rotate_button_rect.intersect_rect? args.inputs.mouse
+        if args.state.rotation == -45
+          args.state.rotation = 0
+        else
+          args.state.rotation = -45
+        end
+      end
   end
+
+
 end
 
 # Main Loop
