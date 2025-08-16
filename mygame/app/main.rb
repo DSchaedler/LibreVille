@@ -1,6 +1,30 @@
+# LibreVille
+# A simple isometric city builder game using DragonRuby Game Toolkit.
+# Copyright (c) 2025 Dee Schaedler. All rights reserved.
+# https://github.com/DSchaedler/LibreVille
+# Readme and License at https://raw.githubusercontent.com/DSchaedler/LibreVille/refs/heads/main/README.md
+# TLDR: LibreVille is Shareware. You can use, modify, and distribute this code freely, but you cannot sell it or use it in a commercial product without permission.
+
 # Helper function for producing Random Numbers in a Range.
 def randr(min, max)
   rand(max - min + 1) + min
+end
+
+# Functions to convert between Cartesian and Isometric coordinates.
+# Technically to_isometric and from_isometric are the same function, but with different default angles.
+
+def to_isometric(x, y, angle = -45)
+  angle_radians = angle.to_radians
+  iso_x = ( x * Math.cos(angle_radians) ) - (y * Math.sin(angle_radians))
+  iso_y = ( x * Math.sin(angle_radians) ) + (y * Math.cos(angle_radians))
+  return iso_x, iso_y
+end
+
+def from_isometric(iso_x, iso_y, angle = 45 )
+  xangle_radians = angle.to_radians
+  iso_x = ( x * Math.cos(angle_radians) ) - (y * Math.sin(angle_radians))
+  iso_y = ( x * Math.sin(angle_radians) ) + (y * Math.cos(angle_radians))
+  return iso_x, iso_y
 end
 
 # Main Loop
@@ -63,8 +87,8 @@ rows = args.state.matrix.length
         path = args.state.matrix[rows-1][columns-1]
         height = args.gtk.calcspritebox(path).y
 
-        x_rotation = ((reference_x * Math.cos(args.state.rotation.to_radians)) - (reference_y * Math.sin(args.state.rotation.to_radians)))
-        y_rotation = ((reference_x * Math.sin(args.state.rotation.to_radians)) + (reference_y * Math.cos(args.state.rotation.to_radians)))
+        x_rotation, y_rotation = to_isometric(reference_x, reference_y)
+
         args.outputs.sprites << { 
           x:  x_rotation, 
           y:  (y_rotation * args.state.iso_scale ) + (720 / 2), 
