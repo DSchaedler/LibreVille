@@ -27,9 +27,37 @@ def from_isometric(iso_x, iso_y, angle = 45 )
   return iso_x, iso_y
 end
 
-# Main Loop
-def tick args
+def logic args
+  # This is where you would put any game logic that needs to run every frame.
 
+  # Create an array of arrays, for a grid.
+  grid_size = 10
+  args.state.matrix ||= grid_size.map { |i| 
+    grid_size.map { |i|
+
+      building = randr(0,9) # 10% chance of spawning a building. TODO, remove when editing is implemented.
+      if building == 9
+        skin = randr(0,3) # Choose a random skin for the building.
+        case skin
+        when 0
+          "sprites/kenney/isometric_tiles_buildings/buildingTiles_001.png"
+        when 1
+          "sprites/kenney/isometric_tiles_buildings/buildingTiles_002.png"
+        when 2
+          "sprites/kenney/isometric_tiles_buildings/buildingTiles_003.png"
+        when 3
+          "sprites/kenney/isometric_tiles_buildings/buildingTiles_004.png"
+        else
+          "sprites/kenney/isometric_tiles_city/city_tiles_066.png" # Default to a city tile if something goes wrong.
+        end
+      else
+        "sprites/kenney/isometric_tiles_city/city_tiles_066.png"
+      end
+    }
+  }
+end
+
+def render_matrix args
   # ==Magic Numbers==
   args.state.sprite_scale     = 1   # (Float %)       Shrink or grow the sprites
   args.state.iso_scale        = 0.5   # (Float %)       Adjust vertical spacing to account for isometric distortion
@@ -45,65 +73,83 @@ def tick args
   args.state.sprite_spacing = (args.state.sprite_height - args.state.sprite_grouping) * args.state.sprite_scale
   args.state.horizontal_scale = args.state.sprite_width * args.state.sprite_scale
 
-  args.outputs.background_color = [29, 32, 43]
-
-  # Create an array of arrays, for a grid of zeroes
-  grid_size = 10
-  args.state.matrix ||= grid_size.map { |i| 
-    grid_size.map { |i|
-      building = randr(0,9)
-      if building == 9
-        skin = randr(0,3)
-        case skin
-        when 0
-          "sprites/kenney/isometric_tiles_buildings/buildingTiles_001.png"
-        when 1
-          "sprites/kenney/isometric_tiles_buildings/buildingTiles_002.png"
-        when 2
-          "sprites/kenney/isometric_tiles_buildings/buildingTiles_003.png"
-        when 3
-          "sprites/kenney/isometric_tiles_buildings/buildingTiles_004.png"
-        else
-          "sprites/kenney/isometric_tiles_city/city_tiles_066.png"
-        end
-      else
-        "sprites/kenney/isometric_tiles_city/city_tiles_066.png"
-      end
-    }
-  }
-
-  # Iterate through every row
-rows = args.state.matrix.length
+  # Iterate through every row. We need to be careful about row/column order so that it renders correctly.
+  # TODO: Make all gameplay elements render based on Y value, with lower Y values on top.
   rows = 1
-  
   while rows <= args.state.matrix.length
-    current_row = args.state.matrix[rows-1]
-      columns = current_row.length
-
+    current_row = args.state.matrix[rows-1] # -1 because arrays are zero-indexed.
+      columns = current_row.length # This should always equal the grid size, but we check it anyway in case we ever decide to have rows with fewer tiles.
       while columns > 0
 
+        # Create reference coordinates for the sprite.
         reference_x = (rows * args.state.sprite_spacing)
         reference_y = ((columns - 1) * args.state.sprite_spacing)
+        
+        # Convert the reference coordinates to isometric coordinates.
+        x_isometric, y_isometric = to_isometric(reference_x, reference_y)
+
+        # The sprite path is stored in the matrix, so we have to get it from there.
         path = args.state.matrix[rows-1][columns-1]
+
+        # The sprites have different heights, and DR requires a height value.
+        # TODO: Make all sprites the same height, so we can hardcode this value.
         height = args.gtk.calcspritebox(path).y
 
-        x_rotation, y_rotation = to_isometric(reference_x, reference_y)
-
         args.outputs.sprites << { 
-          x:  x_rotation, 
-          y:  (y_rotation * args.state.iso_scale ) + (720 / 2), 
-          anchor_x: 0.5,
-          anchor_y: 0,
+          x: x_isometric, 
+          y: (y_isometric * args.state.iso_scale ) + (720 / 2) - (args.state.sprite_height / 5), # We have to adjust the Y value to account for the isometric distortion. Adding 720 / 2 centers the isometric view vertically.
+          anchor_x: 0.5, # Center the sprite horizontally.
+          anchor_y: 0, # Anchor the sprite to the bottom, so sprites of different heights remain grid aligned.
           w: args.state.horizontal_scale,
           h: height,
-          path: path,
-          angle_anchor_x: 0.5,
-          angle_anchor_y: 0.5,
-          primitive_marker: :solid }
-        
+          path: path
+        }
         columns = columns - 1
     end
-
     rows = rows + 1
   end
+end
+
+def user_interface args
+  icon_zoom_in  = "sprites/kenney/game_icons/png/white/2x/zoom_in.png"
+  icon_zoom_out = "sprites/kenney/game_icons/png/white/2x/zoom_out.png"
+  icon_menu     = "sprites/kenney/game_icons/png/white/2x/bars_horizontal.png"
+  grid_menu     = "sprites/kenney/game_icons/png/white/2x/menu_grid.png"
+
+  args.state.menu_button_rect       ||= args.layout.rect(row: 0,                                col: args.layout.col_max_index, w: 1, h: 1)
+  args.state.zoom_in_button_rect    ||= args.layout.rect(row: (args.layout.row_max_index - 1),  col: args.layout.col_max_index, w: 1, h: 1)
+  args.state.zoom_out_button_rect   ||= args.layout.rect(row: args.layout.row_max_index,        col: args.layout.col_max_index, w: 1, h: 1)
+  args.state.grid_menu_button_rect  ||= args.layout.rect(row: 0,                                col: 0,                         w: 1, h: 1)
+
+  args.outputs.sprites << args.state.menu_button_rect.merge(path: icon_menu)
+  args.outputs.sprites << args.state.zoom_in_button_rect.merge(path: icon_zoom_in)
+  args.outputs.sprites << args.state.zoom_out_button_rect.merge(path: icon_zoom_out)
+  args.outputs.sprites << args.state.grid_menu_button_rect.merge(path: grid_menu)
+
+end
+
+def debug_interface args
+  args.state.show_debug ||= false
+  if args.inputs.keyboard.key_up.tab
+    args.state.show_debug = !args.state.show_debug
+  end
+  
+  if args.state.show_debug
+    args.outputs.primitives << args.layout.debug_primitives
+    fps_rect = args.layout.rect(row: 0, col: 0, w: 1, h: 1)
+    args.outputs.labels << fps_rect.merge(text: "FPS: #{args.gtk.current_framerate.round}", r: 255, g: 255, b: 255)
+  end
+end
+
+# Main Loop
+def tick args
+
+  logic args
+
+  args.outputs.background_color = [29, 32, 43]
+  
+  render_matrix args
+  user_interface args
+  debug_interface args
+
 end
