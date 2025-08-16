@@ -1,3 +1,5 @@
+# Engine Files
+# These files are part of the DragonRuby engine and should not be tracked.
 CHANGELOG-CURR.txt
 CHANGELOG-PREV.txt
 console-logo.png
@@ -43,3 +45,20 @@ mygame/sprites/triangle/
 samples/
 tmp/
 mygame/metadata/icon.png
+
+# Project Files
+# These files are part of the project but should not be tracked.
+libreville-android*/
+libreville-googleplay*/
+libreville-html5*/
+libreville-linux*/
+libreville-mac*/
+libreville-oculusquest*/
+libreville-windows*/
+libreville-android.apk
+libreville-googleplay.aab
+libreville-linux-amd64.bin
+libreville-linux-arm64.bin
+libreville-linux-raspberrypi.bin
+libreville-oculusquest.apk
+libreville-windows-amd64.exe
