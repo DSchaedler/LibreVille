@@ -13,17 +13,17 @@ end
 # Functions to convert between Cartesian and Isometric coordinates.
 # Technically to_isometric and from_isometric are the same function, but with different default angles.
 
-def to_isometric(x, y, angle = -45)
+def to_isometric(args, x, y, angle = -45)
   angle_radians = angle.to_radians
   iso_x = ( x * Math.cos(angle_radians) ) - (y * Math.sin(angle_radians))
-  iso_y = ( x * Math.sin(angle_radians) ) + (y * Math.cos(angle_radians))
+  iso_y = (((( x * Math.sin(angle_radians) ) + (y * Math.cos(angle_radians))) * args.state.iso_scale ) + (720 / 2) - (args.state.sprite_height / 5) )
   return iso_x, iso_y
 end
 
-def from_isometric(iso_x, iso_y, angle = 45 )
-  xangle_radians = angle.to_radians
-  iso_x = ( x * Math.cos(angle_radians) ) - (y * Math.sin(angle_radians))
-  iso_y = ( x * Math.sin(angle_radians) ) + (y * Math.cos(angle_radians))
+def from_isometric(args, iso_x, iso_y, angle = 0)
+  angle_radians = angle.to_radians
+  iso_x = ( iso_x * Math.cos(angle_radians) ) - (iso_y * Math.sin(angle_radians))
+  iso_y = (args.state.sprite_height / 5) + (720 / 2) - ((( iso_x * Math.sin(angle_radians) ) + (iso_y * Math.cos(angle_radians))) * args.state.iso_scale )
   return iso_x, iso_y
 end
 
@@ -88,7 +88,7 @@ def render_matrix args
         reference_y = ((columns - 1) * args.state.sprite_spacing)
         
         # Convert the reference coordinates to isometric coordinates.
-        x_isometric, y_isometric = to_isometric(reference_x, reference_y, args.state.rotation)
+        x_isometric, y_isometric = to_isometric(args, reference_x, reference_y, args.state.rotation)
 
         # The sprite path is stored in the matrix, so we have to get it from there.
         path = args.state.matrix[rows-1][columns-1]
@@ -99,10 +99,10 @@ def render_matrix args
 
         if args.state.rotation == 0
           x_alignment = reference_x * ( 0.75 + args.state.iso_scale )
-          y_alignment = reference_y * (args.state.sprite_scale / ( 1+ args.state.iso_scale ))
+          x_alignment, y_alignment = from_isometric(args, x_isometric, y_isometric, args.state.rotation)
         else
           x_alignment = x_isometric
-          y_alignment = (y_isometric * args.state.iso_scale ) + (720 / 2) - (args.state.sprite_height / 5)
+          y_alignment = y_isometric
         end
 
         args.outputs.sprites << { 
