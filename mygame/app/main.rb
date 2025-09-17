@@ -14,8 +14,8 @@ def const args
 
   args.state.money    ||= 10000
 
-  args.state.tile_size     ||= {w: 132, h: 100}
-  args.state.sprite_skew = (args.state.tile_size[:w] / args.state.tile_size[:h]) * 2.3
+  args.state.tile_size     ||= {w: 131, h: 98}
+  args.state.sprite_skew = (args.state.tile_size[:w] / args.state.tile_size[:h]) * 2.25
 
   args.state.grid_size     ||= 10
   args.state.grid_anchor   = {
@@ -30,12 +30,15 @@ def const args
       {UUID: args.gtk.create_uuid, 
       type: :libreville_grass,
       path: "sprites/kenney/isometric_tiles_base/landscape_tiles_067.png",
-      primitive_marker: :sprite
+      primitive_marker: :sprite,
+      grid_x: i,
+      grid_y: i
         }.merge(args.state.tile_size)
       }
     }
 
   args.state.matrix_coords ||= []
+  args.state.z_layers = []
 
   rows = 1
   while rows <= args.state.matrix.length
@@ -51,6 +54,9 @@ def const args
         args.state.matrix_coords[rows-1] ||= []
         args.state.matrix_coords[rows-1][columns-1] = args.state.matrix[rows-1][columns-1].merge(x: x, y: y)
 
+        args.state.z_layers[current_row.length - columns] ||= []
+        args.state.z_layers[current_row.length - columns] << args.state.matrix[rows-1][columns-1].merge(x: x, y: y)
+
         columns = columns - 1
     end
     rows = rows + 1
@@ -63,9 +69,9 @@ def randr(min, max)
   rand(max - min + 1) + min
 end
 
-def render_matrix args
+def render_z_layers args
 
-  args.outputs.primitives << args.state.matrix_coords
+  args.outputs.primitives << args.state.z_layers
   
 end
 
@@ -141,7 +147,7 @@ def tick args
 
   args.outputs.background_color = [29, 32, 43]
 
-  render_matrix args
+  render_z_layers args
   user_interface args
   debug_interface args
 
