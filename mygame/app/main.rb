@@ -13,6 +13,7 @@
 def const args
 
   args.state.money    ||= 10000
+  args.state.current_selection ||= []
 
   args.state.tile_size     = {w: 129, h: 101}
   args.state.sprite_skew = (args.state.tile_size[:w] / args.state.tile_size[:h]) * 2.46
@@ -137,6 +138,8 @@ def debug_interface args
     args.outputs.primitives << args.layout.debug_primitives
     fps_rect = args.layout.rect(row: 0, col: 0, w: 1, h: 1)
     args.outputs.labels << fps_rect.merge(text: "FPS: #{args.gtk.current_framerate.round}", r: 255, g: 255, b: 255)
+    selection_rect = args.layout.rect(row: 1, col: 0, w: 1, h: 1)
+    args.outputs.labels << selection_rect.merge(text: "FPS: #{args.state.current_selection}", r: 255, g: 255, b: 255)
   
     mouse_cursor_sprite = "sprites/kenney/game_icons/png/white/2x/target.png"
 
@@ -156,6 +159,42 @@ def debug_interface args
   end
 end
 
+def locate_click_tile args
+  #if args.inputs.mouse.up
+    x = args.inputs.mouse.x
+    y = args.inputs.mouse.y
+
+    #x = args.state.grid_anchor[:x] + ((rows - 2) + columns) * args.state.tile_size[:w] / 2
+    #y = args.state.grid_anchor[:y] + (-1 * (rows) * args.state.tile_size[:h] / args.state.sprite_skew) + columns * args.state.tile_size[:h] / args.state.sprite_skew
+    y = (args.inputs.mouse.y * args.state.sprite_skew) / args.state.tile_size[:h]
+    grid_x = ((x - 2) + y) / (args.state.tile_size[:w] / 2) - args.state.grid_anchor[:x]
+    grid_y = 0
+
+    args.state.current_selection = [grid_x, grid_y]
+  #end
+end
+
+def display_selection args  
+  if args.state.current_selection != []
+
+    mouse_cursor_sprite = "sprites/kenney/game_icons/png/white/2x/target.png"
+
+    args.outputs.primitives << {
+      x: (args.state.grid_anchor[:x] + ((args.state.current_selection[0]) + args.state.current_selection[1]) * args.state.tile_size[:w] / 2) + args.state.tile_size[:w] / 2,
+      y: args.state.grid_anchor[:y] + (-1 * (args.state.current_selection[0]) * args.state.tile_size[:h] / args.state.sprite_skew) + args.state.current_selection[1] * args.state.tile_size[:h] / args.state.sprite_skew,
+      w: 20,
+      h: 20,
+      r: 0,
+      g: 0,
+      b: 255,
+      path: mouse_cursor_sprite,
+      anchor_x: 0,
+      anchor_y: 0,
+      primitive_marker: :sprite
+    }
+  end
+end
+
 # Main Loop
 def tick args
 
@@ -163,9 +202,11 @@ def tick args
 
   args.outputs.background_color = [29, 32, 43]
 
+  locate_click_tile args
+
   render_z_layers args
   user_interface args
-  
+  display_selection args
   debug_interface args
 
 end
