@@ -137,6 +137,22 @@ def debug_interface args
     args.outputs.primitives << args.layout.debug_primitives
     fps_rect = args.layout.rect(row: 0, col: 0, w: 1, h: 1)
     args.outputs.labels << fps_rect.merge(text: "FPS: #{args.gtk.current_framerate.round}", r: 255, g: 255, b: 255)
+  
+    mouse_cursor_sprite = "sprites/kenney/game_icons/png/white/2x/target.png"
+
+    args.outputs.primitives << {
+      x: args.inputs.mouse.x,
+      y: args.inputs.mouse.y,
+      w: 20,
+      h: 20,
+      r: 0,
+      g: 0,
+      b: 255,
+      path: mouse_cursor_sprite,
+      anchor_x: 0.5,
+      anchor_y: 0.5,
+      primitive_marker: :sprite
+    }
   end
 end
 
@@ -149,6 +165,7 @@ def tick args
 
   render_z_layers args
   user_interface args
+  
   debug_interface args
 
 end
