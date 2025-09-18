@@ -14,8 +14,8 @@ def const args
 
   args.state.money    ||= 10000
 
-  args.state.tile_size     ||= {w: 131, h: 98}
-  args.state.sprite_skew = (args.state.tile_size[:w] / args.state.tile_size[:h]) * 2.25
+  args.state.tile_size     = {w: 129, h: 101}
+  args.state.sprite_skew = (args.state.tile_size[:w] / args.state.tile_size[:h]) * 2.46
 
   args.state.grid_size     ||= 10
   args.state.grid_anchor   = {
@@ -29,7 +29,7 @@ def const args
     args.state.grid_size.map { |i|
       {UUID: args.gtk.create_uuid, 
       type: :libreville_grass,
-      path: "sprites/kenney/isometric_tiles_base/landscape_tiles_067.png",
+      path: "sprites/kenney/isometric_tiles_city/city_tiles_066.png",
       primitive_marker: :sprite,
       grid_x: i,
       grid_y: i
